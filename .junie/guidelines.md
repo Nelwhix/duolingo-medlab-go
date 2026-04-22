@@ -1,0 +1,1 @@
+- Always add debug logs using h.Logger

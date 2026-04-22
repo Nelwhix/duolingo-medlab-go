@@ -1,0 +1,9 @@
+# Environment variables
+.env
+.env.local
+
+# Logs
+logs/
+
+# IDE - JetBrains
+.idea/

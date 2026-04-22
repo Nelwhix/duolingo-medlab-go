@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    container_name: duolingo-medlab-app
+    networks:
+      - apps_nelwhix-sandbox
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.medlab.rule=Host(`duolingo.nelwhix.online`)"
+      - "traefik.http.services.medlab.loadbalancer.server.port=8080"
+
+networks:
+  apps_nelwhix-sandbox:
+    external: true
