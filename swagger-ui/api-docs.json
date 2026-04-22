@@ -9,6 +9,10 @@
     {
       "url": "http://localhost:8080",
       "description": "Local server"
+    },
+    {
+      "url": "https://duolingo.nelwhix.online",
+      "description": "Staging server"
     }
   ],
   "paths": {
