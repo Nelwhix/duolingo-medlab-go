@@ -8,6 +8,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.medlab.rule=Host(`duolingo.nelwhix.online`)"
       - "traefik.http.services.medlab.loadbalancer.server.port=8080"
+    volumes:
+      - .env:/app/.env
 
 networks:
   apps_nelwhix-sandbox:

@@ -7,3 +7,5 @@ logs/
 
 # IDE - JetBrains
 .idea/
+
+tmp
