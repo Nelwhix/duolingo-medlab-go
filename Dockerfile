@@ -8,8 +8,6 @@ FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/main .
 COPY --from=builder /app/swagger-ui ./swagger-ui
-COPY --from=builder /app/migrations ./migrations
-COPY --from=builder /app/tern.conf ./tern.conf
 
 RUN mkdir logs
 
