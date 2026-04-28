@@ -15,12 +15,18 @@
       "description": "Staging server"
     }
   ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
   "paths": {
     "/api/v1/ping": {
       "get": {
         "tags": ["Misc"],
         "summary": "Ping",
         "description": "Returns a pong message with the current time",
+        "security": [],
         "responses": {
           "200": {
             "description": "OK",
@@ -46,6 +52,7 @@
         "tags": ["Auth"],
         "summary": "Sign Up",
         "description": "Creates a new user account",
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -95,6 +102,7 @@
         "tags": ["Auth"],
         "summary": "Login",
         "description": "Logs in a user and returns an authentication token",
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -154,6 +162,7 @@
         "tags": ["Auth"],
         "summary": "Forgot Password",
         "description": "Sends a password reset link to the user's email",
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -203,6 +212,7 @@
         "tags": ["Auth"],
         "summary": "Reset Password",
         "description": "Resets the user's password using a reset token",
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -256,9 +266,119 @@
           }
         }
       }
+    },
+    "/api/v1/users/{id}": {
+      "patch": {
+        "tags": ["Users"],
+        "summary": "Update the user details",
+        "description": "Update the user details",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkResponseWithUserData"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/departments": {
+      "get": {
+        "tags": ["Departments"],
+        "summary": "Get available departments",
+        "description": "Get available departments",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "pong, time is: 2026-03-26 19:20"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
     "schemas": {
       "BaseResponse": {
         "type": "object",
@@ -365,6 +485,15 @@
           },
           "token": {
             "type": "string"
+          },
+          "learning_goal_pass_exams": {
+            "type": "boolean"
+          },
+          "learning_goal_refresh_knowledge": {
+            "type": "boolean"
+          },
+          "learning_goal_practice_daily": {
+            "type": "boolean"
           }
         }
       },
@@ -387,6 +516,23 @@
           },
           "data": {
             "$ref": "#/components/schemas/UserResource"
+          }
+        }
+      },
+      "UpdateUserRequest": {
+        "type": "object",
+        "properties": {
+          "learning_goal_pass_exams": {
+            "type": "boolean"
+          },
+          "learning_goal_refresh_knowledge": {
+            "type": "boolean"
+          },
+          "learning_goal_practice_daily": {
+            "type": "boolean"
+          },
+          "department_id": {
+            "type": "string"
           }
         }
       },

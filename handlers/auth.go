@@ -12,90 +12,92 @@ import (
 	"time"
 
 	"github.com/Nelwhix/duolingo-medlab-go/pkg"
-	"github.com/Nelwhix/duolingo-medlab-go/pkg/requests"
+	"github.com/Nelwhix/duolingo-medlab-go/pkg/request"
+	"github.com/Nelwhix/duolingo-medlab-go/pkg/resource"
+	"github.com/Nelwhix/duolingo-medlab-go/pkg/response"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserResource struct {
-	ID       string `json:"id"`
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Token    string `json:"token,omitempty"`
-}
-
 func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
-	request, err := pkg.ParseRequestBody[requests.SignUp](r)
+	cRequest, err := pkg.ParseRequestBody[request.SignUp](r)
 	if err != nil {
-		h.NewUnprocessableEntity(w, "Failed to process request")
+		response.NewUnprocessableEntity(w, "Failed to process request")
 		return
 	}
 
-	err = h.Validator.Struct(request)
+	err = h.Validator.Struct(cRequest)
 	if err != nil {
-		h.NewUnprocessableEntity(w, "Failed to process request")
+		response.NewUnprocessableEntity(w, "Failed to process request")
 		return
 	}
 
-	_, err = h.Model.GetUserByEmail(r.Context(), request.Email)
+	_, err = h.Model.GetUserByEmail(r.Context(), cRequest.Email)
 	if err == nil {
-		h.NewUnprocessableEntity(w, "Email already taken")
+		response.NewUnprocessableEntity(w, "Email already taken")
 		return
 	}
 
-	user, err := h.Model.InsertIntoUsers(r.Context(), request)
+	userID, err := h.Model.InsertIntoUsers(r.Context(), cRequest)
 	if err != nil {
 		h.Logger.Error("Failed to insert user into database", slog.String("error", err.Error()))
-		h.NewInternalServerError(w, "Failed to process request")
+		response.NewInternalServerError(w, "Failed to process request")
 		return
 	}
 
-	response := UserResource{
+	user, err := h.Model.GetUserById(r.Context(), userID)
+	if err != nil {
+		h.Logger.Error("Failed to retrieve user from database", slog.String("error", err.Error()))
+		response.NewInternalServerError(w, "Failed to process request")
+		return
+	}
+
+	res := resource.UserResource{
 		ID:       user.ID,
 		Username: user.Username,
 		Email:    user.Email,
 	}
 
-	h.NewCreatedResponseWithData(w, "User created successfully.", response)
+	response.NewCreatedResponseWithData(w, "User created successfully.", res)
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	request, err := pkg.ParseRequestBody[requests.Login](r)
+	cRequest, err := pkg.ParseRequestBody[request.Login](r)
 	if err != nil {
-		h.NewUnprocessableEntity(w, "Failed to process request")
+		response.NewUnprocessableEntity(w, "Failed to process request")
 		return
 	}
 
-	err = h.Validator.Struct(request)
+	err = h.Validator.Struct(cRequest)
 	if err != nil {
-		h.NewUnprocessableEntity(w, "Failed to process request")
+		response.NewUnprocessableEntity(w, "Failed to process request")
 		return
 	}
 
-	user, err := h.Model.GetUserByEmail(r.Context(), request.Email)
+	user, err := h.Model.GetUserByEmail(r.Context(), cRequest.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			h.NewBadRequest(w, "Email or Password is incorrect")
+			response.NewBadRequest(w, "Email or Password is incorrect")
 			return
 		}
 
-		h.NewBadRequest(w, "Failed to process request")
+		response.NewBadRequest(w, "Failed to process request")
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(cRequest.Password))
 	if err != nil {
-		h.NewBadRequest(w, "Email or Password is incorrect")
+		response.NewBadRequest(w, "Email or Password is incorrect")
 		return
 	}
 
 	token, err := h.CreateToken(r.Context(), user.ID)
 	if err != nil {
 		h.Logger.Error("Failed to create token", slog.String("error", err.Error()))
-		h.NewInternalServerError(w, "Failed to process request")
+		response.NewInternalServerError(w, "Failed to process request")
 		return
 	}
 
-	h.NewOkResponseWithData(w, "Login successful", UserResource{
+	response.NewOkResponseWithData(w, resource.UserResource{
 		ID:       user.ID,
 		Username: user.Username,
 		Email:    user.Email,
@@ -104,27 +106,27 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
-	request, err := pkg.ParseRequestBody[requests.ForgotPassword](r)
+	cRequest, err := pkg.ParseRequestBody[request.ForgotPassword](r)
 	if err != nil {
-		h.NewUnprocessableEntity(w, err.Error())
+		response.NewUnprocessableEntity(w, err.Error())
 		return
 	}
 
-	err = h.Validator.Struct(request)
+	err = h.Validator.Struct(cRequest)
 	if err != nil {
-		h.NewUnprocessableEntity(w, err.Error())
+		response.NewUnprocessableEntity(w, err.Error())
 		return
 	}
 
-	_, err = h.Model.GetUserByEmail(r.Context(), request.Email)
+	_, err = h.Model.GetUserByEmail(r.Context(), cRequest.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			h.NewOKResponse(w, "Password reset link sent")
+			response.NewOKResponse(w, "Password reset link sent")
 			return
 		}
 
 		h.Logger.Error("Failed to get user by email", slog.String("error", err.Error()))
-		h.NewInternalServerError(w, "Something went wrong")
+		response.NewInternalServerError(w, "Something went wrong")
 		return
 	}
 
@@ -132,71 +134,71 @@ func (h *Handler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	tokenHash := hashToken(token)
 	expires := time.Now().Add(time.Hour * 1)
 
-	err = h.Model.InsertIntoPasswordResets(r.Context(), request.Email, tokenHash, expires)
+	err = h.Model.InsertIntoPasswordResets(r.Context(), cRequest.Email, tokenHash, expires)
 	if err != nil {
 		h.Logger.Error("Failed to insert password reset into database", slog.String("error", err.Error()))
-		h.NewInternalServerError(w, "Failed to process request")
+		response.NewInternalServerError(w, "Failed to process request")
 		return
 	}
 
-	err = h.Mailer.SendPasswordResetEmail(r.Context(), request.Email, token)
+	err = h.Mailer.SendPasswordResetEmail(r.Context(), cRequest.Email, token)
 	if err != nil {
 		h.Logger.Error("Failed to send password reset email", slog.String("error", err.Error()))
 	}
 
-	h.NewOKResponse(w, "Password reset link sent")
+	response.NewOKResponse(w, "Password reset link sent")
 }
 
 func (h *Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
-	request, err := pkg.ParseRequestBody[requests.ResetPassword](r)
+	cRequest, err := pkg.ParseRequestBody[request.ResetPassword](r)
 	if err != nil {
-		h.NewUnprocessableEntity(w, err.Error())
+		response.NewUnprocessableEntity(w, err.Error())
 		return
 	}
 
-	if err = h.Validator.Struct(request); err != nil {
-		h.NewUnprocessableEntity(w, err.Error())
+	if err = h.Validator.Struct(cRequest); err != nil {
+		response.NewUnprocessableEntity(w, err.Error())
 		return
 	}
 
-	storedHash, expiresAt, err := h.Model.GetPasswordReset(r.Context(), request.Email)
+	storedHash, expiresAt, err := h.Model.GetPasswordReset(r.Context(), cRequest.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			h.NewBadRequest(w, "Invalid token or email")
+			response.NewBadRequest(w, "Invalid token or email")
 			return
 		}
 
 		h.Logger.Error("Failed to get password reset from database", slog.String("error", err.Error()))
-		h.NewInternalServerError(w, "Internal error")
+		response.NewInternalServerError(w, "Internal error")
 	}
 
 	if time.Now().After(expiresAt) {
-		h.NewBadRequest(w, "Token has expired")
+		response.NewBadRequest(w, "Token has expired")
 		return
 	}
 
-	if hashToken(request.Token) != storedHash {
-		h.NewBadRequest(w, "Invalid token")
+	if hashToken(cRequest.Token) != storedHash {
+		response.NewBadRequest(w, "Invalid token")
 		return
 	}
 
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(request.Password), 12)
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(cRequest.Password), 12)
 	if err != nil {
 		h.Logger.Error("Failed to hash password", slog.String("error", err.Error()))
-		h.NewInternalServerError(w, "Internal error")
+		response.NewInternalServerError(w, "Internal error")
 		return
 	}
 
-	err = h.Model.UpdateUserPassword(r.Context(), request.Email, string(passwordHash))
+	err = h.Model.UpdateUserPassword(r.Context(), cRequest.Email, string(passwordHash))
 	if err != nil {
 		h.Logger.Error("Failed to update user password", slog.String("error", err.Error()))
-		h.NewInternalServerError(w, "Internal error")
+		response.NewInternalServerError(w, "Internal error")
 		return
 	}
 
-	_ = h.Model.DeletePasswordReset(r.Context(), request.Email)
+	_ = h.Model.DeletePasswordReset(r.Context(), cRequest.Email)
 
-	h.NewOKResponse(w, "Password reset successful")
+	response.NewOKResponse(w, "Password reset successful")
 }
 
 func generateToken() (string, error) {
