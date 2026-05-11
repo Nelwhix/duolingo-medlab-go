@@ -65,6 +65,7 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
+		h.Logger.Error("Failed to parse request", slog.String("error", err.Error()))
 		response.NewBadRequest(w, "Failed to parse request")
 		return
 	}
@@ -73,12 +74,14 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	decoder := schema.NewDecoder()
 	err = decoder.Decode(&cRequest, r.PostForm)
 	if err != nil {
+		h.Logger.Error("Failed to decode login request", slog.String("error", err.Error()))
 		response.NewUnprocessableEntity(w, "Failed to process request")
 		return
 	}
 
 	err = h.Validator.Struct(cRequest)
 	if err != nil {
+		h.Logger.Error("Failed to validate login request", slog.String("error", err.Error()))
 		response.NewUnprocessableEntity(w, "Failed to process request")
 		return
 	}
@@ -90,6 +93,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		h.Logger.Error("Failed to retrieve user by email", slog.String("error", err.Error()))
 		response.NewBadRequest(w, "Failed to process request")
 		return
 	}
