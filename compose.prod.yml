@@ -12,6 +12,7 @@ services:
       - "traefik.http.services.medlab.loadbalancer.server.port=8080"
     volumes:
       - .env:/app/.env
+      - ./logs:/app/logs
 
 networks:
   apps_nelwhix-sandbox:
