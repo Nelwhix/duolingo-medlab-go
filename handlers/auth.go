@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/schema"
+
 	"github.com/Nelwhix/duolingo-medlab-go/pkg"
 	"github.com/Nelwhix/duolingo-medlab-go/pkg/request"
 	"github.com/Nelwhix/duolingo-medlab-go/pkg/resource"
@@ -61,7 +63,15 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	cRequest, err := pkg.ParseRequestBody[request.Login](r)
+	err := r.ParseForm()
+	if err != nil {
+		response.NewBadRequest(w, "Failed to parse request")
+		return
+	}
+
+	var cRequest request.Login
+	decoder := schema.NewDecoder()
+	err = decoder.Decode(&cRequest, r.PostForm)
 	if err != nil {
 		response.NewUnprocessableEntity(w, "Failed to process request")
 		return
@@ -90,19 +100,28 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.CreateToken(r.Context(), user.ID)
+	value := map[string]string{
+		"user_id": user.ID,
+	}
+
+	encoded, err := h.CookieHandler.Encode("duolingo_medlab_auth", value)
 	if err != nil {
-		h.Logger.Error("Failed to create token", slog.String("error", err.Error()))
+		h.Logger.Error("Failed to encode cookie", slog.String("error", err.Error()))
 		response.NewInternalServerError(w, "Failed to process request")
 		return
 	}
 
-	response.NewOkResponseWithData(w, resource.UserResource{
-		ID:       user.ID,
-		Username: user.Username,
-		Email:    user.Email,
-		Token:    token,
-	})
+	cookie := &http.Cookie{
+		Name:     "duolingo_medlab_auth",
+		Value:    encoded,
+		Path:     "/",
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	}
+	http.SetCookie(w, cookie)
+
+	http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
 }
 
 func (h *Handler) ForgotPassword(w http.ResponseWriter, r *http.Request) {

@@ -8,10 +8,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sesv2 v1.60.2
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/gorilla/handlers v1.5.2
+	github.com/gorilla/schema v1.4.1
+	github.com/gorilla/securecookie v1.1.2
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/joho/godotenv v1.5.1
 	github.com/oklog/ulid/v2 v2.1.1
-	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.11.1
 	github.com/thanhpk/randstr v1.0.6
 	golang.org/x/crypto v0.46.0

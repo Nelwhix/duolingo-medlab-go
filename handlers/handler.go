@@ -8,19 +8,20 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Nelwhix/duolingo-medlab-go/pkg/context_key"
 	"github.com/Nelwhix/duolingo-medlab-go/pkg/mailer"
 	"github.com/Nelwhix/duolingo-medlab-go/pkg/models"
 	"github.com/Nelwhix/duolingo-medlab-go/pkg/response"
 	"github.com/go-playground/validator/v10"
+	"github.com/gorilla/securecookie"
 	"github.com/thanhpk/randstr"
 )
 
 type Handler struct {
-	Model     *models.Model
-	Logger    *slog.Logger
-	Validator *validator.Validate
-	Mailer    mailer.Mailer
+	Model         *models.Model
+	Logger        *slog.Logger
+	Validator     *validator.Validate
+	Mailer        mailer.Mailer
+	CookieHandler *securecookie.SecureCookie
 }
 
 func (h *Handler) Pong(w http.ResponseWriter, r *http.Request) {
@@ -58,9 +59,4 @@ func (h *Handler) generateTokenString() string {
 		tokenEntropy,
 		crc32bHash,
 	)
-}
-
-func GetUserFromContext(ctx context.Context) (models.User, bool) {
-	user, ok := ctx.Value(context_key.UserContextKey).(models.User)
-	return user, ok
 }

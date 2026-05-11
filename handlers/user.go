@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Nelwhix/duolingo-medlab-go/pkg"
+	"github.com/Nelwhix/duolingo-medlab-go/pkg/context_key"
 	"github.com/Nelwhix/duolingo-medlab-go/pkg/request"
 	"github.com/Nelwhix/duolingo-medlab-go/pkg/resource"
 	"github.com/Nelwhix/duolingo-medlab-go/pkg/response"
@@ -11,7 +12,7 @@ import (
 
 func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	userId := r.PathValue("id")
-	user, ok := GetUserFromContext(r.Context())
+	user, ok := context_key.GetUserFromContext(r.Context())
 	if !ok {
 		response.NewUnauthorized(w, "unauthorized")
 		return

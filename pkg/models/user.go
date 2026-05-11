@@ -9,6 +9,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type Role string
+
+const Admin Role = "admin"
+
+const RegularUser Role = "user"
+
 type User struct {
 	ID                           string
 	Username                     string
@@ -18,6 +24,7 @@ type User struct {
 	LearningGoalRefreshKnowledge bool
 	LearningGoalPracticeDaily    bool
 	Department                   Department
+	Role                         Role
 }
 
 func (m *Model) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -115,4 +122,35 @@ func (m *Model) UpdateUser(ctx context.Context, userID string, request request.U
 	_, err := m.Conn.Exec(ctx, query, request.LearningGoalPassExams, request.LearningGoalPracticeDaily, request.LearningGoalRefreshKnowledge, request.DepartmentID, userID)
 
 	return err
+}
+
+func (m *Model) GetAdminUserById(ctx context.Context, userID string) (User, error) {
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
+	var user User
+	query := `
+		SELECT 
+			u.id,
+			u.username,
+			u.email,
+			u.password,
+			u.role
+		FROM users u
+		WHERE u.id = $1
+	`
+
+	row := m.Conn.QueryRow(ctx, query, userID)
+	err := row.Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.Role,
+	)
+	if err != nil {
+		return User{}, err
+	}
+
+	return user, nil
 }

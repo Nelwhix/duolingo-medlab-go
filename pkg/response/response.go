@@ -29,6 +29,10 @@ func NewInternalServerError(w http.ResponseWriter, message string) {
 	JSON(w, http.StatusInternalServerError, baseResponse{Message: message})
 }
 
+func NewNotFound(w http.ResponseWriter, message string) {
+	JSON(w, http.StatusNotFound, baseResponse{Message: message})
+}
+
 func NewBadRequest(w http.ResponseWriter, message string) {
 	JSON(w, http.StatusBadRequest, baseResponse{Message: message})
 }

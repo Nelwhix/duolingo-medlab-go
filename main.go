@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,8 +17,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sesv2"
 	"github.com/go-playground/validator/v10"
 	gHandlers "github.com/gorilla/handlers"
+	"github.com/gorilla/securecookie"
 	"github.com/joho/godotenv"
-	"github.com/rs/cors"
 )
 
 var validate *validator.Validate
@@ -56,39 +57,58 @@ func main() {
 	sesClient := sesv2.NewFromConfig(cfg)
 	sesMailer := mailer.NewSESMailer(sesClient, os.Getenv("MAIL_FROM_ADDRESS"))
 
+	sessionHash := os.Getenv("SESSION_HASH_KEY")
+	sessionBlockKeyHex := os.Getenv("SESSION_BLOCK_KEY")
+	sessionBlockKey, err := hex.DecodeString(sessionBlockKeyHex)
+	if err != nil {
+		log.Fatalf("Invalid SESSION_BLOCK_KEY: %v", err)
+	}
+	cookieHandler := securecookie.New([]byte(sessionHash), sessionBlockKey)
+
 	handler := handlers.Handler{
-		Model:     model,
-		Logger:    logger,
-		Validator: validate,
-		Mailer:    sesMailer,
+		Model:         model,
+		Logger:        logger,
+		Validator:     validate,
+		Mailer:        sesMailer,
+		CookieHandler: cookieHandler,
 	}
 
 	middleWare := middleware.Middleware{
-		Model: model,
+		Model:         model,
+		CookieHandler: cookieHandler,
+		Logger:        logger,
 	}
 
 	// Guest Routes
-	r.HandleFunc("GET /api/v1/ping", handler.Pong)
-	r.HandleFunc("POST /api/v1/auth/signup", handler.SignUp)
-	r.HandleFunc("POST /api/v1/auth/login", handler.Login)
-	r.HandleFunc("POST /api/v1/auth/forgot-password", handler.ForgotPassword)
-	r.HandleFunc("POST /api/v1/auth/reset-password", handler.ResetPassword)
+	r.HandleFunc("GET /admin/login", handler.RenderAdminLoginPage)
+	r.HandleFunc("POST /auth/login", handler.Login)
+	r.HandleFunc("GET /ping", handler.Pong)
+	//r.HandleFunc("POST /api/v1/auth/signup", handler.SignUp)
+	//r.HandleFunc("POST /api/v1/auth/login", handler.Login)
+	//r.HandleFunc("POST /api/v1/auth/forgot-password", handler.ForgotPassword)
+	//r.HandleFunc("POST /api/v1/auth/reset-password", handler.ResetPassword)
+
+	// auth routes
 	r.Handle("PATCH /api/v1/users/{id}", middleWare.Auth(http.HandlerFunc(handler.UpdateUser)))
 	r.Handle("GET /api/v1/departments", middleWare.Auth(http.HandlerFunc(handler.GetDepartments)))
 
-	fs := http.FileServer(http.Dir("./swagger-ui"))
-	r.Handle("GET /docs/", http.StripPrefix("/docs/", fs))
+	// admin routes
+	r.Handle("GET /admin/dashboard", middleWare.SessionAuth(middleWare.Admin(http.HandlerFunc(handler.RenderAdminDashboard))))
+	r.Handle("POST /admin/logout", middleWare.SessionAuth(middleWare.Admin(http.HandlerFunc(handler.Logout))))
+
+	// questions
+	r.Handle("POST /admin/questions", middleWare.SessionAuth(middleWare.Admin(http.HandlerFunc(handler.CreateQuestion))))
+	r.Handle("GET /admin/questions", middleWare.SessionAuth(middleWare.Admin(http.HandlerFunc(handler.RenderAdminQuestions))))
+	r.Handle("GET /admin/questions/{id}", middleWare.SessionAuth(middleWare.Admin(http.HandlerFunc(handler.RenderSingleAdminQuestion))))
+	r.Handle("GET /admin/questions/create", middleWare.SessionAuth(middleWare.Admin(http.HandlerFunc(handler.RenderAdminCreateQuestion))))
+	r.Handle("POST /admin/questions/{id}/delete", middleWare.SessionAuth(middleWare.Admin(http.HandlerFunc(handler.DeleteQuestion))))
+
+	static := http.FileServer(http.Dir("./static"))
+	r.Handle("GET /static/", http.StripPrefix("/static/", static))
 
 	fmt.Println("Server started on port 8080")
-	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedHeaders:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "OPTIONS", "PATCH", "PUT", "DELETE"},
-		AllowCredentials: true,
-		Debug:            false,
-	})
 
-	err = http.ListenAndServe(":8080", gHandlers.CombinedLoggingHandler(os.Stdout, c.Handler(middleware.ContentTypeMiddleware(r))))
+	err = http.ListenAndServe(":8080", gHandlers.CombinedLoggingHandler(os.Stdout, middleware.Gzip(r)))
 	if err != nil {
 		log.Printf("failed to run the server: %v", err)
 	}
