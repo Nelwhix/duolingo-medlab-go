@@ -7,48 +7,62 @@
     <title>Dashboard &mdash; MedLab Admin</title>
     <link rel="stylesheet" href="/static/css/tailwind.min.css">
 </head>
-<body class="h-screen overflow-hidden bg-slate-100 flex">
+<body class="min-h-screen bg-slate-100" x-data="{ open: false }">
 
-    <!-- Sidebar -->
-    <aside class="w-64 h-screen shrink-0 bg-white border-r border-slate-200 flex flex-col">
-        <div class="px-6 py-5 border-b border-slate-200">
-            <h1 class="text-xl font-bold text-slate-800">MedLab</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Admin Panel</p>
-        </div>
+    <!-- Mobile overlay -->
+    <div x-show="open" x-on:click="open = false" class="fixed inset-0 bg-black/50 z-40 md:hidden"></div>
 
-        <nav class="flex-1 px-3 py-4 space-y-1">
-            <a href="/admin/questions"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition">
-                <svg class="w-4 h-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
-                </svg>
-                Questions
-            </a>
-        </nav>
+    <div class="flex h-screen overflow-hidden">
 
-        <div class="px-3 py-4 border-t border-slate-200">
-            <form action="/admin/logout" method="POST">
-                <button type="submit"
-                        class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition">
+        <!-- Sidebar -->
+        <aside class="fixed inset-y-0 left-0 z-50 w-64 shrink-0 bg-white border-r border-slate-200 flex flex-col transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0"
+               :class="open ? 'translate-x-0' : '-translate-x-full'">
+            <div class="px-6 py-5 border-b border-slate-200">
+                <h1 class="text-xl font-bold text-slate-800">MedLab</h1>
+                <p class="text-xs text-slate-500 mt-0.5">Admin Panel</p>
+            </div>
+
+            <nav class="flex-1 px-3 py-4 space-y-1">
+                <a href="/admin/questions"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition">
                     <svg class="w-4 h-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
                     </svg>
-                    Logout
+                    Questions
+                </a>
+            </nav>
+
+            <div class="px-3 py-4 border-t border-slate-200">
+                <form action="/admin/logout" method="POST">
+                    <button type="submit"
+                            class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition">
+                        <svg class="w-4 h-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
+                        </svg>
+                        Logout
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-1 flex flex-col overflow-y-auto min-w-0">
+            <header class="bg-white border-b border-slate-200 px-4 md:px-8 py-5 flex items-center gap-3" style="height: 87px;">
+                <button x-on:click="open = !open" class="md:hidden p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 transition">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg>
                 </button>
-            </form>
-        </div>
-    </aside>
+                <h2 class="text-lg font-semibold text-slate-800">Dashboard</h2>
+            </header>
 
-    <!-- Main content -->
-    <main class="flex-1 flex flex-col overflow-y-auto">
-        <header class="bg-white border-b border-slate-200 px-8 py-5" style="height: 87px;">
-            <h2 class="text-lg font-semibold text-slate-800">Dashboard</h2>
-        </header>
+            <div class="flex-1 px-4 md:px-8 py-6">
+                <p class="text-slate-500 text-sm">Welcome to the MedLab admin panel. Use the sidebar to navigate.</p>
+            </div>
+        </main>
 
-        <div class="flex-1 px-8 py-6">
-            <p class="text-slate-500 text-sm">Welcome to the MedLab admin panel. Use the sidebar to navigate.</p>
-        </div>
-    </main>
+    </div>
 
+    <script defer src="/static/js/alpine.js"></script>
 </body>
 </html>

@@ -7,183 +7,196 @@
     <title>Create Question &mdash; MedLab Admin</title>
     <link rel="stylesheet" href="/static/css/tailwind.min.css">
 </head>
-<body class="h-screen overflow-hidden bg-slate-100 flex">
+<body class="min-h-screen bg-slate-100" x-data="{ open: false, questionType: 'multiple_choice' }">
 
-    <!-- Sidebar -->
-    <aside class="w-64 h-screen shrink-0 bg-white border-r border-slate-200 flex flex-col">
-        <div class="px-6 py-5 border-b border-slate-200">
-            <h1 class="text-xl font-bold text-slate-800">MedLab</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Admin Panel</p>
-        </div>
+    <!-- Mobile overlay -->
+    <div x-show="open" x-on:click="open = false" class="fixed inset-0 bg-black/50 z-40 md:hidden"></div>
 
-        <nav class="flex-1 px-3 py-4 space-y-1">
-            <a href="/admin/questions"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-900 transition">
-                <svg class="w-4 h-4 text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
-                </svg>
-                Questions
-            </a>
-        </nav>
+    <div class="flex h-screen overflow-hidden">
 
-        <div class="px-3 py-4 border-t border-slate-200">
-            <form action="/admin/logout" method="POST">
-                <button type="submit"
-                        class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition">
-                    <svg class="w-4 h-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
+        <!-- Sidebar -->
+        <aside class="fixed inset-y-0 left-0 z-50 w-64 shrink-0 bg-white border-r border-slate-200 flex flex-col transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0"
+               :class="open ? 'translate-x-0' : '-translate-x-full'">
+            <div class="px-6 py-5 border-b border-slate-200">
+                <h1 class="text-xl font-bold text-slate-800">MedLab</h1>
+                <p class="text-xs text-slate-500 mt-0.5">Admin Panel</p>
+            </div>
+
+            <nav class="flex-1 px-3 py-4 space-y-1">
+                <a href="/admin/questions"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-900 transition">
+                    <svg class="w-4 h-4 text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
                     </svg>
-                    Logout
-                </button>
-            </form>
-        </div>
-    </aside>
+                    Questions
+                </a>
+            </nav>
 
-    <!-- Main content -->
-    <main class="flex-1 flex flex-col overflow-y-auto">
-        <header class="bg-white border-b border-slate-200 px-8 py-5 flex items-center gap-3" style="height: 87px;">
-            <a href="/admin/questions" class="text-slate-400 hover:text-slate-600 transition">
-                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                </svg>
-            </a>
-            <h2 class="text-lg font-semibold text-slate-800">Create Question</h2>
-        </header>
-
-        <div class="flex-1 px-8 py-6">
-            <div class="max-w-2xl">
-                <form action="/admin/questions" method="POST" class="space-y-6" x-data="{ questionType: 'multiple_choice' }">
-
-                    <div class="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
-                        <h3 class="text-sm font-semibold text-slate-700 uppercase tracking-wide">Question Details</h3>
-
-                        <div>
-                            <label for="topic" class="block text-sm font-medium text-slate-700 mb-1.5">Topic</label>
-                            <input
-                                id="topic"
-                                name="topic"
-                                type="text"
-                                required
-                                placeholder="e.g. Cardiovascular System"
-                                class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                            >
-                        </div>
-
-                        <div>
-                            <label for="type" class="block text-sm font-medium text-slate-700 mb-1.5">Question Type</label>
-                            <select
-                                id="type"
-                                name="type"
-                                required
-                                x-model="questionType"
-                                class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white"
-                            >
-                                <option value="" disabled selected>Select a type</option>
-                                <option value="multiple_choice">Multiple Choice</option>
-                                <option value="german">German(fill in the blanks)</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label for="department_id" class="block text-sm font-medium text-slate-700 mb-1.5">Department</label>
-                            <select
-                                id="department_id"
-                                name="department_id"
-                                required
-                                class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white"
-                            >
-                                <option value="" disabled selected>Select a department</option>
-                                {{range .Departments}}
-                                    <option value="{{.ID}}">{{.Title}}</option>
-                                {{end}}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label for="question" class="block text-sm font-medium text-slate-700 mb-1.5">Question</label>
-                            <textarea
-                                id="question"
-                                name="question"
-                                rows="3"
-                                required
-                                placeholder="Enter the question text..."
-                                class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
-                            ></textarea>
-                        </div>
-
-                        <div x-show="questionType === 'german'">
-                            <label for="answer" class="block text-sm font-medium text-slate-700 mb-1.5">Answer</label>
-                            <textarea
-                                    id="answer"
-                                    name="answer"
-                                    rows="3"
-                                    placeholder="Enter the answer text..."
-                                    class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
-                            ></textarea>
-                        </div>
-                    </div>
-
-                    <div x-show="questionType === 'multiple_choice'" class="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
-                        <h3 class="text-sm font-semibold text-slate-700 uppercase tracking-wide">Answer Options</h3>
-                        <p class="text-xs text-slate-500">Check the box next to the correct answer.</p>
-
-                        <div id="options-list" class="space-y-3">
-                            <div class="flex items-center gap-3">
-                                <input type="radio" name="correct_option" value="0" class="accent-blue-600 w-4 h-4 shrink-0">
-                                <input
-                                    type="text"
-                                    name="options[]"
-                                    placeholder="Option A"
-                                    class="flex-1 rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                >
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <input type="radio" name="correct_option" value="1" class="accent-blue-600 w-4 h-4 shrink-0">
-                                <input
-                                    type="text"
-                                    name="options[]"
-                                    placeholder="Option B"
-                                    class="flex-1 rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                >
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <input type="radio" name="correct_option" value="2" class="accent-blue-600 w-4 h-4 shrink-0">
-                                <input
-                                    type="text"
-                                    name="options[]"
-                                    placeholder="Option C (optional)"
-                                    class="flex-1 rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                >
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <input type="radio" name="correct_option" value="3" class="accent-blue-600 w-4 h-4 shrink-0">
-                                <input
-                                    type="text"
-                                    name="options[]"
-                                    placeholder="Option D (optional)"
-                                    class="flex-1 rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                >
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-end gap-3">
-                        <a href="/admin/questions"
-                           class="rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 text-sm font-medium px-4 py-2.5 transition">
-                            Cancel
-                        </a>
-                        <button
-                            type="submit"
-                            class="rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold px-4 py-2.5 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                        >
-                            Save Question
-                        </button>
-                    </div>
-
+            <div class="px-3 py-4 border-t border-slate-200">
+                <form action="/admin/logout" method="POST">
+                    <button type="submit"
+                            class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition">
+                        <svg class="w-4 h-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
+                        </svg>
+                        Logout
+                    </button>
                 </form>
             </div>
-        </div>
-    </main>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-1 flex flex-col overflow-y-auto min-w-0">
+            <header class="bg-white border-b border-slate-200 px-4 md:px-8 py-5 flex items-center gap-3" style="height: 87px;">
+                <button x-on:click="open = !open" class="md:hidden p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 transition">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg>
+                </button>
+                <a href="/admin/questions" class="text-slate-400 hover:text-slate-600 transition">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                    </svg>
+                </a>
+                <h2 class="text-lg font-semibold text-slate-800">Create Question</h2>
+            </header>
+
+            <div class="flex-1 px-4 md:px-8 py-6">
+                <div class="max-w-2xl">
+                    <form action="/admin/questions" method="POST" class="space-y-6">
+
+                        <div class="bg-white rounded-xl border border-slate-200 p-4 md:p-6 space-y-5">
+                            <h3 class="text-sm font-semibold text-slate-700 uppercase tracking-wide">Question Details</h3>
+
+                            <div>
+                                <label for="topic" class="block text-sm font-medium text-slate-700 mb-1.5">Topic</label>
+                                <input
+                                    id="topic"
+                                    name="topic"
+                                    type="text"
+                                    required
+                                    placeholder="e.g. Cardiovascular System"
+                                    class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                >
+                            </div>
+
+                            <div>
+                                <label for="type" class="block text-sm font-medium text-slate-700 mb-1.5">Question Type</label>
+                                <select
+                                    id="type"
+                                    name="type"
+                                    required
+                                    x-model="questionType"
+                                    class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white"
+                                >
+                                    <option value="" disabled selected>Select a type</option>
+                                    <option value="multiple_choice">Multiple Choice</option>
+                                    <option value="german">German(fill in the blanks)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="department_id" class="block text-sm font-medium text-slate-700 mb-1.5">Department</label>
+                                <select
+                                    id="department_id"
+                                    name="department_id"
+                                    required
+                                    class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white"
+                                >
+                                    <option value="" disabled selected>Select a department</option>
+                                    {{range .Departments}}
+                                        <option value="{{.ID}}">{{.Title}}</option>
+                                    {{end}}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="question" class="block text-sm font-medium text-slate-700 mb-1.5">Question</label>
+                                <textarea
+                                    id="question"
+                                    name="question"
+                                    rows="3"
+                                    required
+                                    placeholder="Enter the question text..."
+                                    class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
+                                ></textarea>
+                            </div>
+
+                            <div x-show="questionType === 'german'">
+                                <label for="answer" class="block text-sm font-medium text-slate-700 mb-1.5">Answer</label>
+                                <textarea
+                                        id="answer"
+                                        name="answer"
+                                        rows="3"
+                                        placeholder="Enter the answer text..."
+                                        class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
+                                ></textarea>
+                            </div>
+                        </div>
+
+                        <div x-show="questionType === 'multiple_choice'" class="bg-white rounded-xl border border-slate-200 p-4 md:p-6 space-y-4">
+                            <h3 class="text-sm font-semibold text-slate-700 uppercase tracking-wide">Answer Options</h3>
+                            <p class="text-xs text-slate-500">Check the box next to the correct answer.</p>
+
+                            <div id="options-list" class="space-y-3">
+                                <div class="flex items-center gap-3">
+                                    <input type="radio" name="correct_option" value="0" class="accent-blue-600 w-4 h-4 shrink-0">
+                                    <input
+                                        type="text"
+                                        name="options[]"
+                                        placeholder="Option A"
+                                        class="flex-1 rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                    >
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <input type="radio" name="correct_option" value="1" class="accent-blue-600 w-4 h-4 shrink-0">
+                                    <input
+                                        type="text"
+                                        name="options[]"
+                                        placeholder="Option B"
+                                        class="flex-1 rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                    >
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <input type="radio" name="correct_option" value="2" class="accent-blue-600 w-4 h-4 shrink-0">
+                                    <input
+                                        type="text"
+                                        name="options[]"
+                                        placeholder="Option C (optional)"
+                                        class="flex-1 rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                    >
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <input type="radio" name="correct_option" value="3" class="accent-blue-600 w-4 h-4 shrink-0">
+                                    <input
+                                        type="text"
+                                        name="options[]"
+                                        placeholder="Option D (optional)"
+                                        class="flex-1 rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                    >
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-3">
+                            <a href="/admin/questions"
+                               class="rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 text-sm font-medium px-4 py-2.5 transition">
+                                Cancel
+                            </a>
+                            <button
+                                type="submit"
+                                class="rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold px-4 py-2.5 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            >
+                                Save Question
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </main>
+
+    </div>
 
     <script defer src="/static/js/alpine.js"></script>
 </body>
