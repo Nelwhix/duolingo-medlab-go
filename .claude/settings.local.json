@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /Users/nelwhix/Documents/startups/duolingo-medlab-go/static/css)",
+      "Bash(curl -sL https://unpkg.com/tailwindcss@3/dist/tailwind.min.css -o /Users/nelwhix/Documents/startups/duolingo-medlab-go/static/css/tailwind.min.css)",
+      "Bash(curl -sL --max-redirs 5 \"https://unpkg.com/tailwindcss@3/dist/tailwind.min.css\" -o /Users/nelwhix/Documents/startups/duolingo-medlab-go/static/css/tailwind.min.css)",
+      "Bash(curl -sI \"https://unpkg.com/tailwindcss@3/dist/tailwind.min.css\")",
+      "Bash(curl -sL \"https://cdn.jsdelivr.net/npm/tailwindcss@2/dist/tailwind.min.css\" -o /Users/nelwhix/Documents/startups/duolingo-medlab-go/static/css/tailwind.min.css)"
+    ]
+  }
+}
