@@ -1,15 +1,14 @@
 CREATE TABLE IF NOT EXISTS questions (
      id CHAR(26) PRIMARY KEY,
      type VARCHAR(50) NOT NULL,
-     department_id CHAR(26) NOT NULL,
-     topic VARCHAR(255) NOT NULL,
+     topic_id CHAR(26) NOT NULL,
      question TEXT NOT NULL,
      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_questions_department_id
-    ON questions (department_id);
+CREATE INDEX IF NOT EXISTS idx_questions_topic_id
+    ON questions (topic_id);
 
 CREATE TABLE IF NOT EXISTS question_options (
     id CHAR(26) PRIMARY KEY,
