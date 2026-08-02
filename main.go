@@ -82,11 +82,7 @@ func main() {
 	// Guest Routes
 	r.HandleFunc("GET /admin/login", handler.RenderAdminLoginPage)
 	r.HandleFunc("POST /auth/login", handler.Login)
-	r.HandleFunc("GET /ping", handler.Pong)
-	//r.HandleFunc("POST /api/v1/auth/signup", handler.SignUp)
-	//r.HandleFunc("POST /api/v1/auth/login", handler.Login)
-	//r.HandleFunc("POST /api/v1/auth/forgot-password", handler.ForgotPassword)
-	//r.HandleFunc("POST /api/v1/auth/reset-password", handler.ResetPassword)
+	r.HandleFunc("GET /", handler.Pong)
 
 	// auth routes
 	r.Handle("PATCH /api/v1/users/{id}", middleWare.Auth(http.HandlerFunc(handler.UpdateUser)))
@@ -95,6 +91,9 @@ func main() {
 	// admin routes
 	r.Handle("GET /admin/dashboard", middleWare.SessionAuth(middleWare.Admin(http.HandlerFunc(handler.RenderAdminDashboard))))
 	r.Handle("POST /admin/logout", middleWare.SessionAuth(middleWare.Admin(http.HandlerFunc(handler.Logout))))
+
+	// topics
+	r.Handle("POST /admin/topics", middleWare.SessionAuth(middleWare.Admin(http.HandlerFunc(handler.CreateTopic))))
 
 	// questions
 	r.Handle("POST /admin/questions", middleWare.SessionAuth(middleWare.Admin(http.HandlerFunc(handler.CreateQuestion))))
@@ -108,7 +107,7 @@ func main() {
 
 	fmt.Println("Server started on port 8080")
 
-	err = http.ListenAndServe(":8080", gHandlers.CombinedLoggingHandler(os.Stdout, middleware.Gzip(r)))
+	err = http.ListenAndServe(":8080", gHandlers.CombinedLoggingHandler(os.Stdout, middleware.Brotli(r)))
 	if err != nil {
 		log.Printf("failed to run the server: %v", err)
 	}
