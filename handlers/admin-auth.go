@@ -5,8 +5,6 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
-
-	"github.com/Nelwhix/duolingo-medlab-go/pkg/response"
 )
 
 func (h *Handler) RenderAdminLoginPage(w http.ResponseWriter, r *http.Request) {
@@ -17,7 +15,7 @@ func (h *Handler) RenderAdminLoginPage(w http.ResponseWriter, r *http.Request) {
 			err := parsedTemplate.Execute(w, nil)
 			if err != nil {
 				h.Logger.Error("Failed to render admin login page", slog.String("error", err.Error()))
-				response.NewInternalServerError(w, "Internal error")
+				h.renderAdminServerError(w)
 				return
 			}
 		}
