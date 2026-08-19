@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Create Topic &mdash; MedLab Admin</title>
+    <link rel="stylesheet" href="/static/css/tailwind.min.css">
+</head>
+<body class="min-h-screen bg-slate-100" x-data="{ open: false, questionType: 'multiple_choice' }">
+
+<!-- Mobile overlay -->
+<div x-show="open" x-on:click="open = false" class="fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+
+<div class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="fixed inset-y-0 left-0 z-50 w-64 shrink-0 bg-white border-r border-slate-200 flex flex-col transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0"
+           :class="open ? 'translate-x-0' : '-translate-x-full'">
+        <div class="px-6 py-5 border-b border-slate-200">
+            <h1 class="text-xl font-bold text-slate-800">MedLab</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Admin Panel</p>
+        </div>
+
+        <nav class="flex-1 px-3 py-4 space-y-1">
+            <a href="/admin/topics"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition">
+                <svg class="w-4 h-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+                </svg>
+                Topics
+            </a>
+        </nav>
+
+        <div class="px-3 py-4 border-t border-slate-200">
+            <form action="/admin/logout" method="POST">
+                <button type="submit"
+                        class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition">
+                    <svg class="w-4 h-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
+                    </svg>
+                    Logout
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="flex-1 flex flex-col overflow-y-auto min-w-0">
+        <header class="bg-white border-b border-slate-200 px-4 md:px-8 py-5 flex items-center gap-3" style="height: 87px;">
+            <button x-on:click="open = !open" class="md:hidden p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 transition">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+            </button>
+            <a href="/admin/questions" class="text-slate-400 hover:text-slate-600 transition">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+            </a>
+            <h2 class="text-lg font-semibold text-slate-800">Create Topic</h2>
+        </header>
+
+        <div class="flex-1 px-4 md:px-8 py-6">
+            <div class="max-w-2xl">
+                <form action="/admin/topics" method="POST" class="space-y-6">
+
+                    {{if .Errors}}
+                    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+                        <p class="font-semibold">Please fix the following errors:</p>
+                        <ul class="mt-2 list-disc space-y-1 pl-5">
+                            {{range $message := .Errors}}
+                            <li>{{$message}}</li>
+                            {{end}}
+                        </ul>
+                    </div>
+                    {{end}}
+
+                    <div class="bg-white rounded-xl border border-slate-200 p-4 md:p-6 space-y-5">
+                        <div>
+                            <label for="topic" class="block text-sm font-medium text-slate-700 mb-1.5">Topic</label>
+                            <input
+                                    id="topic"
+                                    name="topic"
+                                    type="text"
+                                    required
+                                    value="{{index .Old "topic"}}"
+                                    placeholder="e.g. Cardiovascular System"
+                                    class="w-full rounded-lg border px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition {{if index .Errors "topic"}}border-red-400{{else}}border-slate-300{{end}}"
+                            >
+                            {{with index .Errors "topic"}}<p class="mt-1.5 text-sm text-red-600">{{.}}</p>{{end}}
+                        </div>
+
+                        <div>
+                            <label for="department_id" class="block text-sm font-medium text-slate-700 mb-1.5">Department</label>
+                            <select
+                                    id="department_id"
+                                    name="department_id"
+                                    required
+                                    class="w-full rounded-lg border px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white {{if index .Errors "department_id"}}border-red-400{{else}}border-slate-300{{end}}"
+                            >
+                                <option value="" disabled {{if not (index .Old "department_id")}}selected{{end}}>Select a department</option>
+                                {{range .Departments}}
+                                <option value="{{.ID}}" {{if eq (index $.Old "department_id") .ID}}selected{{end}}>{{.Title}}</option>
+                                {{end}}
+                            </select>
+                            {{with index .Errors "department_id"}}<p class="mt-1.5 text-sm text-red-600">{{.}}</p>{{end}}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-3">
+                        <a href="/admin/questions"
+                           class="rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 text-sm font-medium px-4 py-2.5 transition">
+                            Cancel
+                        </a>
+                        <button
+                                type="submit"
+                                class="rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold px-4 py-2.5 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        >
+                            Save
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </main>
+
+</div>
+
+<script defer src="/static/js/alpine.js"></script>
+</body>
+</html>

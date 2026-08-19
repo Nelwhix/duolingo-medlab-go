@@ -39,7 +39,7 @@ func (h *Handler) CreateQuestion(w http.ResponseWriter, r *http.Request) {
 	err = h.Model.InsertQuestion(r.Context(), requestData)
 	if err != nil {
 		h.Logger.Error("Failed to insert question", slog.String("error", err.Error()))
-		response.NewInternalServerError(w, "Failed to process request")
+		h.renderAdminServerError(w)
 		return
 	}
 
@@ -49,7 +49,8 @@ func (h *Handler) CreateQuestion(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) RenderAdminQuestions(w http.ResponseWriter, r *http.Request) {
 	questions, err := h.Model.GetQuestions(r.Context())
 	if err != nil {
-		response.NewInternalServerError(w, "Internal error")
+		h.Logger.Error("Failed to fetch questions", err.Error())
+		h.renderAdminServerError(w)
 		return
 	}
 
@@ -61,7 +62,8 @@ func (h *Handler) RenderAdminQuestions(w http.ResponseWriter, r *http.Request) {
 		},
 	).ParseFiles("./templates/admin/questions.html")
 	if err != nil {
-		response.NewInternalServerError(w, "Internal error")
+		h.Logger.Error("Failed to parse template files", "error", err)
+		h.renderAdminServerError(w)
 		return
 	}
 
@@ -70,7 +72,8 @@ func (h *Handler) RenderAdminQuestions(w http.ResponseWriter, r *http.Request) {
 	}
 	err = parsedTemplate.Execute(w, viewData)
 	if err != nil {
-		response.NewInternalServerError(w, "Internal error")
+		h.Logger.Error("Failed to render template files", err.Error())
+		h.renderAdminServerError(w)
 		return
 	}
 }
@@ -80,7 +83,7 @@ func (h *Handler) DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 	err := h.Model.DeleteQuestion(r.Context(), questionId)
 	if err != nil {
 		h.Logger.Error("Failed to delete question", slog.String("error", err.Error()))
-		response.NewInternalServerError(w, "Failed to delete question")
+		h.renderAdminServerError(w)
 		return
 	}
 
@@ -91,7 +94,7 @@ func (h *Handler) RenderSingleAdminQuestion(w http.ResponseWriter, r *http.Reque
 	questionId := r.PathValue("id")
 	question, err := h.Model.GetQuestionById(r.Context(), questionId)
 	if err != nil {
-		response.NewInternalServerError(w, "Internal error")
+		h.renderAdminServerError(w)
 		return
 	}
 
@@ -108,7 +111,7 @@ func (h *Handler) RenderSingleAdminQuestion(w http.ResponseWriter, r *http.Reque
 		},
 	).ParseFiles("./templates/admin/question.html")
 	if err != nil {
-		response.NewInternalServerError(w, "Internal error")
+		h.renderAdminServerError(w)
 		return
 	}
 
@@ -117,7 +120,32 @@ func (h *Handler) RenderSingleAdminQuestion(w http.ResponseWriter, r *http.Reque
 	}
 	err = parsedTemplate.Execute(w, viewData)
 	if err != nil {
-		response.NewInternalServerError(w, "Internal error")
+		h.renderAdminServerError(w)
+		return
+	}
+}
+
+func (h *Handler) RenderAdminCreateQuestion(w http.ResponseWriter, r *http.Request) {
+	departments, err := h.Model.GetDepartments(r.Context())
+	if err != nil {
+		h.renderAdminServerError(w)
+		return
+	}
+
+	parsedTemplate, err := template.ParseFiles("./templates/admin/create-topic.html")
+	if err != nil {
+		h.Logger.Error("Failed to parse template files", "error", err)
+		h.renderAdminServerError(w)
+		return
+	}
+
+	viewData := map[string]any{
+		"Departments": departments,
+	}
+	renderErr := parsedTemplate.Execute(w, viewData)
+	if renderErr != nil {
+		h.Logger.Error("Failed to render template data", renderErr.Error())
+		h.renderAdminServerError(w)
 		return
 	}
 }

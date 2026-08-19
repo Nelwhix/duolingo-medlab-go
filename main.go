@@ -84,7 +84,7 @@ func main() {
 	// Guest Routes
 	r.HandleFunc("GET /admin/login", handler.RenderAdminLoginPage)
 	r.HandleFunc("POST /auth/login", handler.Login)
-	r.HandleFunc("GET /", handler.Pong)
+	r.HandleFunc("GET /{$}", handler.Pong)
 
 	// auth routes
 	r.Handle("PATCH /api/v1/users/{id}", middleWare.Auth(http.HandlerFunc(handler.UpdateUser)))
@@ -96,6 +96,8 @@ func main() {
 
 	// topics
 	r.Handle("POST /admin/topics", middleWare.SessionAuth(middleWare.Admin(http.HandlerFunc(handler.CreateTopic))))
+	r.Handle("GET /admin/topics", middleWare.SessionAuth(middleWare.Admin(http.HandlerFunc(handler.RenderAdminTopics))))
+	r.Handle("GET /admin/topics/create", middleWare.SessionAuth(middleWare.Admin(http.HandlerFunc(handler.RenderAdminCreateTopic))))
 
 	// questions
 	r.Handle("POST /admin/questions", middleWare.SessionAuth(middleWare.Admin(http.HandlerFunc(handler.CreateQuestion))))

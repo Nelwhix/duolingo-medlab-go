@@ -2,40 +2,21 @@ package handlers
 
 import (
 	"html/template"
+	"log/slog"
 	"net/http"
-
-	"github.com/Nelwhix/duolingo-medlab-go/pkg/response"
 )
 
 func (h *Handler) RenderAdminDashboard(w http.ResponseWriter, r *http.Request) {
-	parsedTemplate, _ := template.ParseFiles("./templates/admin/dashboard.html")
-	err := parsedTemplate.Execute(w, nil)
-
+	parsedTemplate, err := template.ParseFiles("./templates/admin/dashboard.html")
 	if err != nil {
-		response.NewInternalServerError(w, "Internal error")
-		return
-	}
-}
-
-func (h *Handler) RenderAdminCreateQuestion(w http.ResponseWriter, r *http.Request) {
-	departments, err := h.Model.GetDepartments(r.Context())
-	if err != nil {
-		response.NewInternalServerError(w, "Internal error")
+		h.Logger.Error("Failed to parse admin dashboard", slog.String("error", err.Error()))
+		h.renderAdminServerError(w)
 		return
 	}
 
-	parsedTemplate, err := template.ParseFiles("./templates/admin/create-question.html")
-	if err != nil {
-		response.NewInternalServerError(w, "Internal error")
-		return
-	}
-
-	viewData := map[string]any{
-		"Departments": departments,
-	}
-	renderErr := parsedTemplate.Execute(w, viewData)
-	if renderErr != nil {
-		response.NewInternalServerError(w, "Internal error")
+	if err := parsedTemplate.Execute(w, nil); err != nil {
+		h.Logger.Error("Failed to render admin dashboard", slog.String("error", err.Error()))
+		h.renderAdminServerError(w)
 		return
 	}
 }
