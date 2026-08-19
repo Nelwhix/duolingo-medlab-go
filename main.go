@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sesv2"
 	"github.com/go-playground/validator/v10"
 	gHandlers "github.com/gorilla/handlers"
+	"github.com/gorilla/schema"
 	"github.com/gorilla/securecookie"
 	"github.com/joho/godotenv"
 )
@@ -69,6 +70,7 @@ func main() {
 		Model:         model,
 		Logger:        logger,
 		Validator:     validate,
+		SchemaDecoder: schema.NewDecoder(),
 		Mailer:        sesMailer,
 		CookieHandler: cookieHandler,
 	}

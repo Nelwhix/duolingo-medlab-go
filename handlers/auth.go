@@ -11,8 +11,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/schema"
-
 	"github.com/Nelwhix/duolingo-medlab-go/pkg"
 	"github.com/Nelwhix/duolingo-medlab-go/pkg/request"
 	"github.com/Nelwhix/duolingo-medlab-go/pkg/resource"
@@ -71,8 +69,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var cRequest request.Login
-	decoder := schema.NewDecoder()
-	err = decoder.Decode(&cRequest, r.PostForm)
+	err = h.SchemaDecoder.Decode(&cRequest, r.PostForm)
 	if err != nil {
 		h.Logger.Error("Failed to decode login request", slog.String("error", err.Error()))
 		response.NewUnprocessableEntity(w, "Failed to process request")

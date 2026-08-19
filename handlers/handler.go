@@ -12,6 +12,7 @@ import (
 	"github.com/Nelwhix/duolingo-medlab-go/pkg/models"
 	"github.com/Nelwhix/duolingo-medlab-go/pkg/response"
 	"github.com/go-playground/validator/v10"
+	"github.com/gorilla/schema"
 	"github.com/gorilla/securecookie"
 	"github.com/thanhpk/randstr"
 )
@@ -20,6 +21,7 @@ type Handler struct {
 	Model         *models.Model
 	Logger        *slog.Logger
 	Validator     *validator.Validate
+	SchemaDecoder *schema.Decoder
 	Mailer        mailer.Mailer
 	CookieHandler *securecookie.SecureCookie
 }
