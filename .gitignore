@@ -9,4 +9,7 @@ logs/
 # IDE - JetBrains
 .idea/
 
+# Claude Code - personal instructions
+CLAUDE.local.md
+
 tmp
