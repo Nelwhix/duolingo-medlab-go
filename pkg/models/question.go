@@ -36,7 +36,7 @@ func (m *Model) InsertQuestion(ctx context.Context, req request.CreateQuestion) 
 	defer tx.Rollback(ctx)
 
 	questionID := ulid.Make().String()
-	query := "insert into questions (id, topic, type, department_id, question) values ($1, $2, $3, $4, $5)"
+	query := "insert into questions (id, topic_id, type, question) values ($1, $2, $3, $4)"
 	_, err = tx.Exec(ctx, query, questionID, req.Topic, req.Type, req.DepartmentID, req.Question)
 	if err != nil {
 		return err
@@ -72,20 +72,11 @@ func (m *Model) GetQuestions(ctx context.Context) ([]Question, error) {
 
 	query := `SELECT 
     q.id,
-    q.topic,
     q.type,
-    q.department_id,
     q.question,
-    q.created_at,
-    qo.id,
-    qo.question_id,
-    qo.option_text,
-    qo.is_correct,
-    d.title
+    q.created_at
 FROM questions q
-INNER JOIN departments d ON d.id = q.department_id
-LEFT JOIN question_options qo ON qo.question_id = q.id
-ORDER BY q.created_at DESC, qo.created_at;`
+ORDER BY q.created_at DESC`
 	rows, err := m.Conn.Query(ctx, query)
 	if err != nil {
 		return nil, err
